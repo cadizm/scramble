@@ -28,7 +28,7 @@ A = { 0 : [ 1,  4,  5],
      15 : [10, 11, 14] }
 
 # Corpus as one big string
-W = open('words.txt', 'r').read()
+W = open('words1.txt', 'r').read()
 
 # Corpus as an array of strings
 D = W.split()
@@ -46,21 +46,23 @@ FLAGS = { 'tr': 0
         }
 
 
-
 class Vertex:
     'Representation of vertex in graph'
-    def __init__(self, index, label, visited=False, adjacent_vertices=[]):
+    def __init__(self, index, label, visited=False,
+            adjacent_vertices=[], adjacent_vertex_indices=[]):
         self.index = index
         self.label = label
         self.visited = visited
         self.adjacent_vertices = adjacent_vertices
+        self.adjacent_vertex_indices = adjacent_vertex_indices
 
     def __str__(self):
-        return '{0} : [{1}]'.format(self.label,
-                ' '.join(v.label for v in self.adjacent_vertices))
+        return '{0} : [{1}] [{2}]'.format(self.label,
+                ' '.join(v.label for v in self.adjacent_vertices),
+                ' '.join(str(i) for i in self.adjacent_vertex_indices))
 
 
-def dfs(u, S, L):
+def dfs(u, S, L, min_len):
     'Depth first search; prunes deadends and processes valid words'
     S.append(u.label)
     L.append(u.index)
@@ -70,12 +72,14 @@ def dfs(u, S, L):
         S.pop()
         L.pop()
         return
-    if s in D and len(s) >= 6:
+    if len(s) >= min_len and s in D:
         process(S, L)
+    # Mark as visited when rooted at u
     u.visited = True
     for v in u.adjacent_vertices:
         if not v.visited:
-            dfs(v, S, L)
+            dfs(v, S, L, min_len)
+    # Unmark to visit u when rooted elsewhere
     u.visited = False
     S.pop()
     L.pop()
@@ -101,26 +105,31 @@ def process(S, L):
         else:
                 print '<li>{0}</li>'.format('&nbsp;')
     print '</ol></td>'
-    if FLAGS['tr'] == 2:
+    if FLAGS['tr'] == 3:
         print '</tr>'
         FLAGS['tr'] = 0
 
 
 def prune(s):
-    'Return False if prefix s in corpus'
+    'Prune if prefix s not in corpus'
     prefix = '^{0}.*?$'.format(s)
     return not re.search(prefix, W, re.S|re.M)
 
 
-def build_graph(S):
-    'Build graph from input string S and adjacency list A'
+def build_graph_path(S):
+    'Build graph V and critical vertices P from input string S'
     V = [Vertex(k, S[k]) for k in sorted(A.keys())]
     for i, v in enumerate(V):
         v.adjacent_vertices = [V[j] for j in A[i]]
-    return V
+        v.adjacent_vertex_indices = [j for j in A[i]]
+    P = []
+    for v in V:
+        if v.index in Z:
+            P.extend(v.adjacent_vertex_indices)
+    return set(P), V
 
 
-def solve(S):
+def solve(S, Z, min_len):
     'Find words in string S a la Scramble with Friends'
     print """<html>
     <head>
@@ -128,12 +137,19 @@ def solve(S):
     </head>
     <body>
         <table>"""
-    for v in build_graph(S):
-        dfs(v, [], [])
+    P, V = build_graph_path(S)
+    for v in V:
+#        if v.index in Z:
+        if v.index in P:
+            dfs(v, [], [], min_len)
     print """        </table>
 </body>
 </html>"""
 
 
 if __name__ == '__main__':
-    solve('desuerneptapfeuw'.lower())
+    min_len = 6
+#    Z = [8, 11, 12, 15]  # `Critical-path indices'
+#    Z = [11, 12, 15]  # `Critical-path indices'
+    Z = [8]  # `Critical-path indices'
+    solve('desuerneptapfeuw'.lower(), Z, min_len)
