@@ -1,0 +1,15 @@
+
+ol {
+    width: 350px;
+    text-align: center;
+}
+
+li {
+    width: 80px;
+    height: 80px;
+    line-height: 80px;  /* vertically align */
+    float: left;
+    margin: 1px;
+    padding: 1px;
+    border: 1px solid gray;
+}
