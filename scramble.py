@@ -34,7 +34,7 @@ D = W.split()
 
 
 class Vertex:
-    'Representation for vertex in graph'
+    'Representation of vertex in graph'
     def __init__(self, index, label, visited=False, adjacent_vertices=[]):
         self.index = index
         self.label = label
@@ -47,7 +47,7 @@ class Vertex:
 
 
 def dfs(u, S, L):
-    'Depth first search; prunes deadend word paths'
+    'Depth first search; prunes deadends and processes valid words'
     S.append(u.label)
     L.append(u.index)
     s = ''.join(S)
@@ -57,7 +57,7 @@ def dfs(u, S, L):
         L.pop()
         return
     if s in D:
-        print s, ' '.join(str(i) for i in L)
+        process(s, L)
     u.visited = True
     for v in u.adjacent_vertices:
         if not v.visited:
@@ -67,8 +67,13 @@ def dfs(u, S, L):
     L.pop()
 
 
+def process(s, L):
+    'Processing for valid words'
+    print s, ' '.join(str(i) for i in L)
+
+
 def prune(s):
-    'Test if prefix in corpus'
+    'Return False if prefix s in corpus'
     prefix = '^{0}.*?$'.format(s)
     return not re.search(prefix, W, re.S|re.M)
 
