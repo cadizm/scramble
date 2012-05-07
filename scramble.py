@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 
+import sys
+import re
+
+DEBUG = True
+
+#
+# Graph indices
 #
 #  0  1  2  3
 #  4  5  6  7
 #  8  9 10 11
 # 12 13 14 15
 #
-
-import re
 
 # Adjacency list for graph
 A = { 0 : [ 1,  4,  5],
@@ -42,11 +47,47 @@ ARR = { -1 : '&larr;',
          4 : '&darr;',
          3 : '&swarr;' }
 
-FLAGS = { 'tr': 0
-        }
+
+class Color():
+    'Representation of RGB color'
+    def __init__(self, r, g, b):
+        self.r = r
+        self.g = g
+        self.b = b
+
+    def __str__(self):
+        return '#{0}{1}{2}'.format(format(self.r, '02x'),
+                format(self.g, '02x'), format(self.b, '02x'))
 
 
-class Vertex:
+def colors(N):
+    'Return length N list of colors with gradations from green to yellow to red'
+    mid = N / 2
+    step = 0xff / (N - 2)
+
+    C = [Color(0, 0, 0) for n in range(N)]
+    C[mid] = Color(0xff, 0xff, 0)
+    C[-1] = Color(0xff, 0, 0)
+    C[0] = Color(0, 0x64, 0)
+
+    prev = C[mid]
+    for c in reversed(C[1:mid]):
+        c.r = prev.r - step
+        c.g = prev.g
+        c.b = prev.b + step
+        prev = c
+
+    prev = C[mid]
+    for c in C[mid + 1:-1]:
+        c.r = prev.r
+        c.g = prev.g - step
+        c.b = prev.b
+        prev = c
+
+    return [str(c) for c in C]
+
+
+class Vertex():
     'Representation of vertex in graph'
     def __init__(self, index, label, visited=False,
             adjacent_vertices=[], adjacent_vertex_indices=[]):
@@ -85,35 +126,28 @@ def dfs(u, S, L, min_len):
     L.pop()
 
 
-def process(S, L):
-    'Processing for valid words'
-    if FLAGS['tr'] == 0:
-        print '<tr>'
-    FLAGS['tr'] += 1
-    print '<td><ol>'
-    for k in A.keys():
-        if k in L:
-            i = L.index(k)
-            c = S[i]
-            if i + 1 < len(L):
-                if i == 0:
-                    print '<li style="background-color: #00FF00">{0} {1}</li>'.format(c, ARR[L[i + 1] - L[i]])
-                else:
-                    print '<li>{0} {1}</li>'.format(c, ARR[L[i + 1] - L[i]])
-            else:
-                print '<li>{0} {1}</li>'.format(c, '&#8226;')
-        else:
-                print '<li>{0}</li>'.format('&nbsp;')
-    print '</ol></td>'
-    if FLAGS['tr'] == 3:
-        print '</tr>'
-        FLAGS['tr'] = 0
-
-
 def prune(s):
     'Prune if prefix s not in corpus'
     prefix = '^{0}.*?$'.format(s)
     return not re.search(prefix, W, re.S|re.M)
+
+
+def process(S, L):
+    'Processing for valid words'
+    if DEBUG: print >> sys.stderr, ''.join(S), L
+    C = colors(len(L))
+    print '<tr><td><ol>'
+    for k in A.keys():  # [0-15]
+        if k in L:
+            i = L.index(k)  # grid position
+            s = S[i]  # letter
+            if i + 1 < len(L):
+                print '<li style="background-color: {0}">{1} {2}</li>'.format(C[i], s, ARR[L[i + 1] - L[i]])
+            else:  # last letter
+                print '<li style="background-color: {0}">{1}</li>'.format(C[i], s)
+        else:
+            print '<li>{0}</li>'.format('&nbsp;')
+    print '</ol></td></tr>'
 
 
 def build_graph_path(S):
