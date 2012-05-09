@@ -2,8 +2,15 @@
 
 import sys
 import re
+import copy
 
-DEBUG = True
+DEBUG = False
+
+##
+## TODO: Refactor to separate core solver from presentation of solution.
+## Also, add JSON interface (or something similar )to make web-ready
+## Add associated word point score to results? Or push to presentation?
+##
 
 #
 # Graph indices
@@ -32,11 +39,6 @@ A = { 0 : [ 1,  4,  5],
      14 : [ 9, 10, 11, 13, 15],
      15 : [10, 11, 14] }
 
-# Corpus as one big string
-W = open('words1.txt', 'r').read()
-
-# Corpus as an array of strings
-D = W.split()
 
 ARR = { -1 : '&larr;',
         -5 : '&nwarr;',
@@ -46,6 +48,12 @@ ARR = { -1 : '&larr;',
          5 : '&searr;',
          4 : '&darr;',
          3 : '&swarr;' }
+
+
+POINTS = {  'a' :  1, 'b' :  4, 'c' :  4, 'd' :  2, 'e' :  1, 'f' :  4, 'g' :  3,
+            'h' :  3, 'i' :  1, 'j' : 10, 'k' :  5, 'l' :  2, 'm' :  4, 'n' :  2,
+            'o' :  1, 'p' :  4, 'q' : 10, 'r' :  1, 's' :  1, 't' :  1, 'u' :  2,
+            'v' :  5, 'w' :  4, 'x' :  8, 'y' :  3, 'z' : 10, }
 
 
 class Color():
@@ -62,13 +70,17 @@ class Color():
 
 def colors(N):
     'Return length N list of colors with gradations from green to yellow to red'
-    mid = N / 2
-    step = 0xff / (N - 2)
+    if N > 2:
+        mid = N / 2
+        step = 0xff / (N - 2)
+    else:
+        mid = 0
+        step = 0
 
     C = [Color(0, 0, 0) for n in range(N)]
     C[mid] = Color(0xff, 0xff, 0)
     C[-1] = Color(0xff, 0, 0)
-    C[0] = Color(0, 0x64, 0)
+    C[0] = Color(0, 0x80, 0)
 
     prev = C[mid]
     for c in reversed(C[1:mid]):
@@ -103,30 +115,31 @@ class Vertex():
                 ' '.join(str(i) for i in self.adjacent_vertex_indices))
 
 
-def dfs(u, S, L, min_len):
-    'Depth first search; prunes deadends and processes valid words'
+def dfs(u, min_len, W, D, S, L, R):
+    'Depth first search; prunes deadends and processes valid words. R is output param'
     S.append(u.label)
     L.append(u.index)
     s = ''.join(S)
-    if prune(s):
+    if prune(s, W):
         u.visited = False
         S.pop()
         L.pop()
         return
     if len(s) >= min_len and s in D:
         process(S, L)
+        R.append((''.join(S), copy.deepcopy(L)))
     # Mark as visited when rooted at u
     u.visited = True
     for v in u.adjacent_vertices:
         if not v.visited:
-            dfs(v, S, L, min_len)
+            dfs(v, min_len, W, D, S, L, R)
     # Unmark to visit u when rooted elsewhere
     u.visited = False
     S.pop()
     L.pop()
 
 
-def prune(s):
+def prune(s, W):
     'Prune if prefix s not in corpus'
     prefix = '^{0}.*?$'.format(s)
     return not re.search(prefix, W, re.S|re.M)
@@ -134,7 +147,8 @@ def prune(s):
 
 def process(S, L):
     'Processing for valid words'
-    if DEBUG: print >> sys.stderr, ''.join(S), L
+    if DEBUG:
+        print >> sys.stderr, ''.join(S), L
     C = colors(len(L))
     print '<tr><td><ol>'
     for k in A.keys():  # [0-15]
@@ -147,7 +161,7 @@ def process(S, L):
                 print '<li style="background-color: {0}">{1}</li>'.format(C[i], s)
         else:
             print '<li>{0}</li>'.format('&nbsp;')
-    print '</ol></td></tr>'
+    print '</ol></td><td><span class="word">{0}</span></td></tr>'.format(''.join(S))
 
 
 def build_graph_path(S):
@@ -156,34 +170,48 @@ def build_graph_path(S):
     for i, v in enumerate(V):
         v.adjacent_vertices = [V[j] for j in A[i]]
         v.adjacent_vertex_indices = [j for j in A[i]]
-    P = []
-    for v in V:
-        if v.index in Z:
-            P.extend(v.adjacent_vertex_indices)
-    return set(P), V
+    return V
 
 
-def solve(S, Z, min_len):
+def solve(S, min_len, _W):
     'Find words in string S a la Scramble with Friends'
+    def keep_word(word):
+        for letter in word:
+            if letter not in S:
+                return False
+        return True
+
+    D = filter(keep_word, _W.split())
+    W = '\n'.join(D)
+
+    if DEBUG:
+        print >> sys.stderr, 'W: {0}'.format(len(W))
+        print >> sys.stderr, 'D: {0}'.format(len(D))
+
     print """<html>
     <head>
         <link href="scramble.css" rel="stylesheet" />
     </head>
     <body>
         <table>"""
-    P, V = build_graph_path(S)
+    V = build_graph_path(S)
+    R = []
     for v in V:
-#        if v.index in Z:
-        if v.index in P:
-            dfs(v, [], [], min_len)
+        dfs(v, min_len, W, D, [], [], R)
     print """        </table>
 </body>
 </html>"""
+    return R
 
 
 if __name__ == '__main__':
+    # One-time read from disk
+    _W = open('words_gte_6.txt', 'r').read()  # Corpus as one big string
+
+    _S = 'desuerneptapfeuw'
     min_len = 6
-#    Z = [8, 11, 12, 15]  # `Critical-path indices'
-#    Z = [11, 12, 15]  # `Critical-path indices'
-    Z = [8]  # `Critical-path indices'
-    solve('desuerneptapfeuw'.lower(), Z, min_len)
+
+    _R = solve(_S.lower(), min_len, _W)
+
+    for r in _R:
+        print >> sys.stderr, r
