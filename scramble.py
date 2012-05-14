@@ -3,12 +3,10 @@
 import sys
 import re
 import copy
+import json
+import memcache
 
-DEBUG = False
-
-##
-## TODO: Add JSON interface?
-##
+DEBUG = True
 
 #
 # Graph indices
@@ -125,7 +123,7 @@ def order(R):
     return sorted(R, rank)
 
 
-def solve(S, _W, min_len=6):
+def solve(S, _W, min_len=6, fmt=None):
     'Find words in string S a la Scramble with Friends'
     def keep_word(word):
         for letter in word:
@@ -141,20 +139,29 @@ def solve(S, _W, min_len=6):
     R = []
     for v in V:
         dfs(v, min_len, W, D, [], [], R)
-    return order(R)
+    if fmt == 'json':
+        return json.dumps([{'word': r[2], 'indices': r[3]} for r in order(R)],
+                separators=(',',':'))
+    else:
+        return order(R)
 
 
 if __name__ == '__main__':
-    # One-time read from disk
-    _W = open('words_gte_6.txt', 'r').read()
-    _S = 'ewltzeinpttssure'
-    _R = solve(_S.lower(), _W)
-    # $ time ./scramble.py
-    # W: 22396
-    # D: 2573
-    # real    0m1.602s
-    # user    0m1.567s
-    # sys     0m0.028s
+    mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+    _W1 = mc.get('_W1')
+    _W2 = mc.get('_W2')
+    if not _W1 or not _W1:
+        _W1 = open('words_gte_6-1.txt', 'r').read()
+        _W2 = open('words_gte_6-2.txt', 'r').read()
+        if not mc.set('_W1', _W1) or not mc.set('_W2', _W2):
+            print 'Error: couldnt set dictionary'
+            sys.exit()
+    _W = _W1 + _W2
+    _S = 'lawimetkeneouasl'
+    _R = mc.get(_S)
+    if not _R:
+        _R = solve(_S.lower(), _W)
+        mc.set(_S, _R)
     if DEBUG:
         for r in _R:
             print >> sys.stderr, r
