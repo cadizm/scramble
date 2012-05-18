@@ -4,9 +4,8 @@ import sys
 import re
 import copy
 import json
-import memcache
 
-DEBUG = True
+DEBUG = False
 
 #
 # Graph indices
@@ -153,5 +152,5 @@ def solve(S, _W, min_len=6, fmt=None):
 
 if __name__ == '__main__':
     _W = open('words.txt', 'r').read()
-    _S = 'lawimetkeneouasl'
-    _R = solve(_S.lower(), _W)
+    _S = 'yugatarsroewstew'
+    _R = solve(_S.lower(), _W, fmt=None)
