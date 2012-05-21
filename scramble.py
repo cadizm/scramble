@@ -48,7 +48,7 @@ class Vertex():
     'Representation of vertex in graph'
     def __init__(self, index, label, visited=False, adjacent_vertices=[]):
         self.index = index
-        self.label = label
+        self.label = label if label != 'q' else 'qu'
         self.visited = visited
         self.adjacent_vertices = adjacent_vertices
 
@@ -127,8 +127,12 @@ def solve(S, _W, min_len=6, fmt=None):
     'Find words in string S a la Scramble with Friends'
     def keep_word(word):
         for letter in word:
-            if letter not in S:
-                return False
+            if 'q' in S:
+                if letter not in S + 'u':
+                    return False
+            else:
+                if letter not in S:
+                    return False
         return True
     D = filter(keep_word, _W.split())
     W = '\n'.join(D)
@@ -152,5 +156,5 @@ def solve(S, _W, min_len=6, fmt=None):
 
 if __name__ == '__main__':
     _W = open('words.txt', 'r').read()
-    _S = 'yugatarsroewstew'
-    _R = solve(_S.lower(), _W, fmt=None)
+    _S = 'ensmaodetemaqsnk'
+    _R = solve(_S.lower(), _W, min_len=1, fmt=None)
