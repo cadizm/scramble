@@ -35,13 +35,17 @@ class Constants():
          14 : [ 9, 10, 11, 13, 15],
          15 : [10, 11, 14] }
     
-    
     # Letter to point mapping
     Points = { 'a' :  1, 'b' :  4, 'c' :  4, 'd' :  2, 'e' :  1, 'f' :  4,
                'g' :  3, 'h' :  3, 'i' :  1, 'j' : 10, 'k' :  5, 'l' :  2,
                'm' :  4, 'n' :  2, 'o' :  1, 'p' :  4, 'q' : 10, 'r' :  1,
                's' :  1, 't' :  1, 'u' :  2, 'v' :  5, 'w' :  4, 'x' :  8,
                'y' :  3, 'z' : 10, }
+
+    DL = 'DL'
+    DW = 'DW'
+    TL = 'TL'
+    TW = 'TW'
 
 
 class Vertex():
@@ -57,13 +61,13 @@ class Vertex():
                 ' '.join(v.label for v in self.adjacent_vertices))
 
 
-def dfs(u, min_len, W, D, S, L, R):
+def dfs(u, min_score, W, D, S, L, R):
     """Depth first search rooted at u, with dead end pruning.
 
     DFS started at graph rooted at vertex u. W and D contain the valid word
     corpuses and should not be modified. S and L are used for bookkeeping and
     should also not be modified. Solution is returned via output param R,
-    containing words found with length >= min_len"""
+    containing words found with score > min_score"""
     S.append(u.label)
     L.append(u.index)
     s = ''.join(S)
@@ -72,13 +76,13 @@ def dfs(u, min_len, W, D, S, L, R):
         S.pop()
         L.pop()
         return
-    if len(s) >= min_len and s in D:
+    if s in D and s not in [r[0] for r in R]:
         R.append([''.join(S), copy.deepcopy(L)])
     # Mark as visited when rooted at u
     u.visited = True
     for v in u.adjacent_vertices:
         if not v.visited:
-            dfs(v, min_len, W, D, S, L, R)
+            dfs(v, min_score, W, D, S, L, R)
     # Unmark to visit u when rooted elsewhere
     u.visited = False
     S.pop()
@@ -99,31 +103,46 @@ def build_graph_path(S):
     return V
 
 
-def order(R):
+def order(R, P):
     """Returned R ordered by descending score
 
     Score ranked by sum of points assigned to each letter.
     Higher rank is given to words of length >= 8"""
     for i, r in enumerate(R):
         word, indices = r
-        length, score = len(word), sum(map(lambda x: Constants.Points[x], word))
+        score_list = [Constants.Points[w] for w in word]
+        num_dw, num_tw = 0, 0
+        for k in P:
+            if k in indices:
+                if P[k] in [Constants.DL, Constants.TL]:
+                    if P[k] == Constants.DL:
+                        score_list[indices.index(k)] *= 2
+                    else:
+                        score_list[indices.index(k)] *= 3
+                elif P[k] in [Constants.DW]:
+                    num_dw += 1
+                elif P[k] in [Constants.TW]:
+                    num_tw += 1
+        length, score = len(word), sum(score_list)
+        score += (score * num_dw * 2) + (score * num_tw * 3)
+        if length == 5: score += 3
+        elif length == 6: score += 6
+        elif length == 7: score += 10
+        elif length == 8: score += 15
+        elif length == 9: score += 20
+        elif length == 10: score += 25
         R[i] = (length, score, word, indices)
     def rank(x, y):
         length_x, length_y = x[0], y[0]
         score_x, score_y = x[1], y[1]
-        if length_x == length_y:
-            return cmp(score_y, score_x)
-        elif score_x == score_y:
+        if max(length_x, length_y) > 10:
             return cmp(length_y, length_x)
         else:
-            if max(length_x, length_y) < 8:
-                return cmp(score_y, score_x)
-            else:
-                return cmp(length_y, length_x)
+            return cmp(score_y, score_x)
     return sorted(R, rank)
 
 
-def solve(S, _W, min_len=6, fmt=None):
+def solve(S, _P, _W, min_score=9, fmt=None):
     'Find words in string S a la Scramble with Friends'
     def keep_word(word):
         for letter in word:
@@ -139,8 +158,8 @@ def solve(S, _W, min_len=6, fmt=None):
     V = build_graph_path(S)
     R = []
     for v in V:
-        dfs(v, min_len, W, D, [], [], R)
-    R = order(R)
+        dfs(v, min_score, W, D, [], [], R)
+    R = filter(lambda x: x[1] > min_score, order(R, _P))
     if DEBUG:
         print >> sys.stderr, 'S: {0}'.format(S)
         print >> sys.stderr, 'W: {0}'.format(len(W))
@@ -156,5 +175,11 @@ def solve(S, _W, min_len=6, fmt=None):
 
 if __name__ == '__main__':
     _W = open('words.txt', 'r').read()
-    _S = 'ensmaodetemaqsnk'
-    _R = solve(_S.lower(), _W, min_len=1, fmt=None)
+    _S = 'afblusasntlrieee'
+    _P = { 0 : Constants.TL, 
+           6 : Constants.TL, 
+          10 : Constants.TL, 
+          14 : Constants.TW }
+    _R = solve(_S.lower(), _P, _W, min_score=9, fmt=None)
+    for r in _R:
+        print r
