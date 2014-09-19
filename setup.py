@@ -16,7 +16,7 @@ setup(
     ],
     include_package_data=True,
     data_files=[
-        ('scramble/data', ['words.txt', 'words_gte_6-1.txt', 'words_gte_6-2.txt']),
+#        ('/usr/local/scramble/data', ['words.txt', 'words_gte_6-1.txt', 'words_gte_6-2.txt']),
     ],
     zip_safe=False,
 )

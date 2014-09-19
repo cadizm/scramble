@@ -174,7 +174,7 @@ def solve(S, _P, _W, min_score=9, fmt=None):
 
 
 if __name__ == '__main__':
-    _W = open('words.txt', 'r').read()
+    _W = open('data/words.txt', 'r').read()
     _S = 'afblusasntlrieee'
     _P = { 0 : Constants.TL, 
            6 : Constants.TL, 
