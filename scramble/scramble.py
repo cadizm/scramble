@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import re
 import copy
@@ -173,8 +174,14 @@ def solve(S, _P, _W, min_score=9, fmt=None):
         return R
 
 
+def read_corpus():
+    data_dir = '{0}/{1}/words.txt'.format(
+            os.path.dirname(os.path.realpath(__file__)), 'data')
+    return open(data_dir, 'r').read()
+
+
 if __name__ == '__main__':
-    _W = open('data/words.txt', 'r').read()
+    _W = read_corpus()
     _S = 'afblusasntlrieee'
     _P = { 0 : Constants.TL, 
            6 : Constants.TL, 
