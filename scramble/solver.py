@@ -4,7 +4,6 @@ import os
 import sys
 import re
 import copy
-import json
 
 DEBUG = False
 
@@ -22,7 +21,7 @@ class Constants():
     A = { 0 : [ 1,  4,  5],
           1 : [ 0,  2,  4,  5,  6],
           2 : [ 1,  3,  5,  6,  7],
-          3 : [ 2,  6,  7], 
+          3 : [ 2,  6,  7],
           4 : [ 0,  1,  5,  8,  9],
           5 : [ 0,  1,  2,  4,  6,  8,  9, 10],
           6 : [ 1,  2,  3,  5,  7,  9, 10, 11],
@@ -35,7 +34,7 @@ class Constants():
          13 : [ 8,  9, 10, 12, 14],
          14 : [ 9, 10, 11, 13, 15],
          15 : [10, 11, 14] }
-    
+
     # Letter to point mapping
     Points = { 'a' :  1, 'b' :  4, 'c' :  4, 'd' :  2, 'e' :  1, 'f' :  4,
                'g' :  3, 'h' :  3, 'i' :  1, 'j' : 10, 'k' :  5, 'l' :  2,
@@ -167,9 +166,8 @@ def solve(S, _P, _W, min_score=9, fmt=None):
         print >> sys.stderr, 'D: {0}'.format(len(D))
         for r in R:
             print >> sys.stderr, r
-    if fmt == 'json':
-        return json.dumps([{'word': r[2], 'indices': r[3]} for r in R],
-                separators=(',',':'))
+    if fmt == 'dict':
+        return {'solutions': [{'word': r[2], 'indices': r[3]} for r in R]}
     else:
         return R
 
@@ -183,9 +181,9 @@ def read_corpus():
 if __name__ == '__main__':
     _W = read_corpus()
     _S = 'afblusasntlrieee'
-    _P = { 0 : Constants.TL, 
-           6 : Constants.TL, 
-          10 : Constants.TL, 
+    _P = { 0 : Constants.TL,
+           6 : Constants.TL,
+          10 : Constants.TL,
           14 : Constants.TW }
     _R = solve(_S.lower(), _P, _W, min_score=9, fmt=None)
     for r in _R:

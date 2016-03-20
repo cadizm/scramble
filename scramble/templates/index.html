@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Scramble Solver</title>
+  <link rel="stylesheet" href={{ url_for('static', filename='css/bootstrap-theme.min.css') }}>
+  <link rel="stylesheet" href={{ url_for('static', filename='css/bootstrap.min.css') }}>
+  <link rel="stylesheet" href={{ url_for('static', filename='css/scramble.css') }}>
+  <link rel="shortcut icon" href={{ url_for('static', filename='images/favicon-scramble.ico" type="image/x-icon') }}>
+</head>
+<body>
+<div ng-app="Scramble">
+  <div ng-controller="ScrambleController">
+    <div class="jumbotron">
+      <div class="container">
+        <div class="col-xs-12 col-sm-6 col-md-4">
+          <div class="form-group">
+            <label for="input-puzzle">
+              <input id="input-puzzle" type="text" class="form-control" maxlength="16" ng-model="puzzle" ng-keypress="keypressSolve($event)" capitalize>
+            </label>
+            <button id="btn-solve" ng-click="clickSolve()" ng-class="{% raw %}{{ btnSolveCss }}{% endraw %}" ng-cloak>Solve</button>
+          </div>
+          <table id="table-puzzle" class="table-bordered">
+            <tr>
+              <td ng-cloak class="cell bold-text" id="puzzle-0">{% raw %}{{ puzzle|cell:0|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-1">{% raw %}{{ puzzle|cell:1|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-2">{% raw %}{{ puzzle|cell:2|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-3">{% raw %}{{ puzzle|cell:3|uppercase }}{% endraw %}</td>
+            </tr>
+            <tr>
+              <td ng-cloak class="cell bold-text" id="puzzle-4">{% raw %}{{ puzzle|cell:4|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-5">{% raw %}{{ puzzle|cell:5|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-6">{% raw %}{{ puzzle|cell:6|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-7">{% raw %}{{ puzzle|cell:7|uppercase }}{% endraw %}</td>
+            </tr>
+            <tr>
+              <td ng-cloak class="cell bold-text" id="puzzle-8">{% raw %}{{ puzzle|cell:8|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-9">{% raw %}{{ puzzle|cell:9|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-10">{% raw %}{{ puzzle|cell:10|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-11">{% raw %}{{ puzzle|cell:11|uppercase }}{% endraw %}</td>
+            </tr>
+            <tr>
+              <td ng-cloak class="cell bold-text" id="puzzle-12">{% raw %}{{ puzzle|cell:12|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-13">{% raw %}{{ puzzle|cell:13|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-14">{% raw %}{{ puzzle|cell:14|uppercase }}{% endraw %}</td>
+              <td ng-cloak class="cell bold-text" id="puzzle-15">{% raw %}{{ puzzle|cell:15|uppercase }}{% endraw %}</td>
+            </tr>
+          </table>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+          <p>
+            This is a <a href="http://zynga.com/game/scramblewf">Scramble</a>
+            solver. Enter a puzzle to the left, or click <a href="#" ng-click="randomPuzzle()">here</a> for a
+            <a href="#" ng-click="randomPuzzle()">random</a> one.
+          </p>
+          <p>
+            For those interested, the Scramble solver source is available on
+            <a href="https://github.com/cadizm/scramble">Github</a>
+          </p>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4">
+        </div>
+      </div> <!-- container -->
+    </div> <!-- jumbotron -->
+    <div class="container">
+      <div class="row">
+        <div ng-repeat="solution in solutions">
+          <div class="col-xs-12 col-sm-6 col-md-4" ng-show="{% raw %}{{ $index % 4 == 0 }}{% endraw %}" ng-cloak>
+            <div>
+              <h4 ng-cloak>{% raw %}{{ solution.word|uppercase }}{% endraw %}</h4>
+            </div>
+            <table class="table-bordered">
+              <tr>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 0) }}{% endraw %}" id="puzzle-0">{% raw %}{{ puzzle|cell:0|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 1) }}{% endraw %}" id="puzzle-1">{% raw %}{{ puzzle|cell:1|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 2) }}{% endraw %}" id="puzzle-2">{% raw %}{{ puzzle|cell:2|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 3) }}{% endraw %}" id="puzzle-3">{% raw %}{{ puzzle|cell:3|uppercase }}{% endraw %}</td>
+              </tr>
+              <tr>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 4) }}{% endraw %}" id="puzzle-4">{% raw %}{{ puzzle|cell:4|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 5) }}{% endraw %}" id="puzzle-5">{% raw %}{{ puzzle|cell:5|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 6) }}{% endraw %}" id="puzzle-6">{% raw %}{{ puzzle|cell:6|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 7) }}{% endraw %}" id="puzzle-7">{% raw %}{{ puzzle|cell:7|uppercase }}{% endraw %}</td>
+              </tr>
+              <tr>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 8) }}{% endraw %}" id="puzzle-8">{% raw %}{{ puzzle|cell:8|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 9) }}{% endraw %}" id="puzzle-9">{% raw %}{{ puzzle|cell:9|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 10) }}{% endraw %}" id="puzzle-10">{% raw %}{{ puzzle|cell:10|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 11) }}{% endraw %}" id="puzzle-11">{% raw %}{{ puzzle|cell:11|uppercase }}{% endraw %}</td>
+              </tr>
+              <tr>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 12) }}{% endraw %}" id="puzzle-12">{% raw %}{{ puzzle|cell:12|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 13) }}{% endraw %}" id="puzzle-13">{% raw %}{{ puzzle|cell:13|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 14) }}{% endraw %}" id="puzzle-14">{% raw %}{{ puzzle|cell:14|uppercase }}{% endraw %}</td>
+                <td ng-cloak class="cell {% raw %}{{ solutionCss(solution, 15) }}{% endraw %}" id="puzzle-15">{% raw %}{{ puzzle|cell:15|uppercase }}{% endraw %}</td>
+              </tr>
+            </table>
+          </div ng-show="{% raw %}{{ $index % 4 == 0 }}{% endraw %}" ng-cloak>
+        </div><!-- ng-repeat -->
+      </div> <!-- row -->
+    </div> <!-- container -->
+  </div> <!-- ScrambleController -->
+</div><!-- Scramble -->
+<script type="text/javascript" src={{ url_for('static', filename='js/underscore-1.6.0.min.js') }}></script>
+<script type="text/javascript" src={{ url_for('static', filename='js/jquery-2.1.1.min.js') }}></script>
+<script type="text/javascript" src={{ url_for('static', filename='js/jquery.cookie-1.4.1.js') }}></script>
+<script type="text/javascript" src={{ url_for('static', filename='js/bootstrap.min.js') }}></script>
+<script type="text/javascript" src={{ url_for('static', filename='js/angular.min.js') }}></script>
+<script type="text/javascript" src={{ url_for('static', filename='js/scramble.js') }}></script>
+</body>
+</html>
