@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 
+import os
 import timeit
 import random
 import string
-import scramble
+from scramble import solver
 
+_dir = os.path.dirname(__file__)
+_dir = os.path.join('..', 'scramble', 'scramble', 'data')
+_dir = os.path.realpath(_dir)
 
-_W = open('words_gte_6.txt', 'r').read()
+_P = { 0 : solver.Constants.TL,
+       6 : solver.Constants.TL,
+      10 : solver.Constants.TL,
+      14 : solver.Constants.TW }
+
+_W = open('%s/words.txt' % _dir, 'r').read()
 
 def random_puzzle():
     return ''.join(random.sample(string.ascii_lowercase, 16))
@@ -14,6 +23,6 @@ def random_puzzle():
 if __name__ == '__main__':
     for i in [1, 10, 50, 100]:
         print '{0} sec, {1} iterations'.format(timeit.timeit(
-                stmt='scramble.solve(random_puzzle(), _W)',
-                setup='from __main__ import scramble, random_puzzle, _W',
+                stmt='solver.solve(random_puzzle(), _P, _W)',
+                setup='from __main__ import solver, random_puzzle, _P, _W',
                 number=i), i)
