@@ -51,7 +51,7 @@ app.controller("ScrambleController", function($scope, $http) {
         }
         var config = {
             method: 'GET',
-            url: '/solve/' + $scope.puzzle
+            url: window.location.pathname + 'solve/' + $scope.puzzle
         };
         $scope.semaphore--;
         var res = $http(config)
