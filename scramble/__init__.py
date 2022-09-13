@@ -12,7 +12,7 @@ P = { 0 : solver.Constants.TL,
      14 : solver.Constants.TW }
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static/scramble', static_folder='static')
 
 
 @app.route('/')

@@ -1,0 +1,17 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+    # https://docs.ansible.com/ansible/2.9/modules/docker_container_module.html
+    # https://levelup.gitconnected.com/deploying-docker-containers-with-ansible-2a74a420e2b1
+    - name: deploy scramble
+      docker_container:
+        image: cadizm/scramble:latest
+        pull: true
+        name: scramble
+        state: started
+        restart: true
+        restart_policy: unless-stopped
+        ports:
+          - "9002:9002"

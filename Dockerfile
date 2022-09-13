@@ -1,7 +1,9 @@
-FROM python:2
+FROM python:2-slim
 
 COPY . /app
 WORKDIR /app
 RUN pip install --no-cache-dir -r requirements/base.txt
 
-CMD [ "python", "bin/runserver.py" ]
+EXPOSE 9002
+
+CMD ["gunicorn", "--config", "scramble/gunicorn_config.py", "scramble.wsgi:app"]

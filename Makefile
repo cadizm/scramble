@@ -1,10 +1,13 @@
-all:
+all: build
+
+build:
 	docker build --tag cadizm/scramble .
 
-run:
-	docker run --rm -e PYTHONPATH=/app -p 5001:5001 cadizm/scramble
+docker-run: build
+	docker run --rm -p 9002:9002 cadizm/scramble
 
 push:
-	docker push cadizm/scramble
+	docker push cadizm/scramble:latest
 
-.PHONY: all run push
+deploy:
+	ansible-playbook --inventory ansible/hosts --limit=dev --user=cadizm ansible/deploy.yml
